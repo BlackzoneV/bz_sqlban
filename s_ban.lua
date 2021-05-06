@@ -2,9 +2,9 @@ ESX = nil
 
 TriggerEvent('esx:getSharedObject', function(obj) ESX = obj end)
 
---- KOMUTLAR
+--- COMMANDS
 
-RegisterCommand("yargı", function(source, args, rawCommand)
+RegisterCommand("idban", function(source, args, rawCommand)
 	if source ~= 0 then
   	local xPlayer = ESX.GetPlayerFromId(source)
 	if yetkiliKontrol(xPlayer) then
@@ -30,11 +30,34 @@ RegisterCommand("yargı", function(source, args, rawCommand)
 	end
 end, false)
 
-RegisterCommand("unyargı", function(source, args, rawCommand)
+RegisterCommand("hexban", function(source, args, rawCommand)
 	if source ~= 0 then
   	local xPlayer = ESX.GetPlayerFromId(source)
 	if yetkiliKontrol(xPlayer) then
-	if args[1] and tonumber(args[1]) then
+	local steamID = 'steam:' .. args[1]:lower()
+
+	if string.len(steamID) ~= 21 then
+		TriggerClientEvent('notification', source, 'Hex yanlış!', 2)
+		return
+	end
+
+	MySQL.Async.execute('INSERT INTO bz_ban (identifier) VALUES (@identifier)', {
+				['@identifier'] = steamID
+			}, function (rowsChanged)
+				table.insert(BanList, steamID)
+				loadBanList()
+				TriggerClientEvent('notification', source, steamID..' Hexli oyuncuyu yasakladın!', 1)
+	end)
+	else
+	TriggerClientEvent('notification', source, 'Bu komutu kullanmak için yetkin yok!', 2)
+end
+end
+end, false)
+
+RegisterCommand("unhex", function(source, args, rawCommand)
+	if source ~= 0 then
+  	local xPlayer = ESX.GetPlayerFromId(source)
+	if yetkiliKontrol(xPlayer) then
 	local steamID = 'steam:' .. args[1]:lower()
 
 	if string.len(steamID) ~= 21 then
@@ -50,9 +73,6 @@ RegisterCommand("unyargı", function(source, args, rawCommand)
 			loadBanList()
 		end
 	end)
-	    		else
-      			TriggerClientEvent('notification', source, 'Geçersiz ID!', 2)
-    		end
 	else
 	TriggerClientEvent('notification', source, 'Bu komutu kullanmak için yetkin yok!', 2)
 end
